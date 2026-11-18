@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SimpleBooks</title>
+<style>
+:root{--brand:#4f46e5;--brand-d:#3730a3;--brand-l:#e0e7ff;--accent:#f59e0b;--bg:#eef0f8;--panel:#fff;--ink:#1c1d33;--muted:#6a6f8f;--line:#e4e6f1;--get:#059669;--pay:#e11d48;--r:14px}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#app{display:grid;grid-template-columns:68px 360px 1fr;height:100vh;height:100dvh}
+#app.v-items,#app.v-reports,#app.v-settings{grid-template-columns:68px 1fr}
+#app.v-items .listpane,#app.v-reports .listpane,#app.v-settings .listpane{display:none}
+.rail{background:linear-gradient(180deg,#1e1b4b,#312e81);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:6px}
+.logo{width:38px;height:38px;border-radius:11px;background:var(--accent);color:#1e1b4b;font-weight:800;display:grid;place-items:center;margin-bottom:14px;letter-spacing:-1px}
+.rbtn{width:46px;height:46px;border-radius:13px;border:0;background:transparent;color:#c7c9f5;display:grid;place-items:center;position:relative}
+.rbtn:hover{background:rgba(255,255,255,.08)}
+.rbtn.on{background:rgba(255,255,255,.16);color:#fff}
+.rbtn.on::before{content:"";position:absolute;left:-11px;top:12px;bottom:12px;width:4px;border-radius:0 4px 4px 0;background:var(--accent)}
+.rail .sp{flex:1}
+.avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;flex:none;font-size:15px}
+.listpane{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;position:relative}
+.lp-head{padding:16px 16px 8px}
+.lp-head h2{margin:0 0 10px;font-size:20px;display:flex;justify-content:space-between;align-items:center}
+.sumstrip{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.sum{border-radius:12px;padding:8px 10px;background:#f6f7fd}
+.sum small{display:block;color:var(--muted);font-size:12px}
+.sum b{font-size:16px}
+.sum.g b{color:var(--get)}.sum.r b{color:var(--pay)}
+.search{display:flex;align-items:center;gap:8px;background:#f1f2fa;border-radius:12px;padding:0 12px;height:40px;color:var(--muted)}
+.search input{border:0;background:transparent;outline:0;flex:1;height:100%}
+.chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.fchip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 12px;font-size:13px;color:var(--muted)}
+.fchip.on{background:var(--brand-l);color:var(--brand-d);border-color:#c7d2fe;font-weight:600}
+.plist{flex:1;overflow:auto;padding:4px 8px 90px}
+.prow{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:12px;cursor:pointer}
+.prow:hover{background:#f6f7fd}.prow.on{background:var(--brand-l)}
+.prow .mid{flex:1;min-width:0}
+.prow .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prow .ls{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prow .rt{text-align:right;flex:none}
+.prow .am{font-weight:700;font-size:14px}.am.g{color:var(--get)}.am.r{color:var(--pay)}.am.z{color:var(--muted)}
+.prow .tl{font-size:11px;color:var(--muted)}
+.fab{position:absolute;right:18px;bottom:18px;border:0;background:var(--brand);color:#fff;height:52px;border-radius:26px;padding:0 20px 0 16px;display:flex;align-items:center;gap:8px;font-weight:700;box-shadow:0 8px 22px rgba(79,70,229,.4)}
+.fab:hover{background:var(--brand-d)}
+.mainpane{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg)}
+.empty-main{margin:auto;text-align:center;color:var(--muted);padding:30px;max-width:420px}
+.empty-main h3{color:var(--ink);margin:12px 0 6px}
+.c-head{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.c-head .nm{font-weight:700}.c-head .sub{font-size:13px;color:var(--muted)}
+.c-head .mid{flex:1;min-width:0}
+.ib{border:0;background:transparent;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:var(--muted)}
+.ib:hover{background:#f1f2fa;color:var(--ink)}
+.back{display:none}
+.balbar{padding:8px 16px;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:14px}
+.balbar b{font-size:17px}
+.tline{flex:1;overflow:auto;padding:16px 14px;background-color:#eceefb;background-image:radial-gradient(#d9dcf3 1.2px,transparent 1.2px);background-size:22px 22px}
+.dsep{text-align:center;margin:14px 0 10px}
+.dsep span{background:#fff;color:var(--muted);font-size:12px;padding:3px 12px;border-radius:999px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.msg{display:flex;margin:6px 0}.msg.r{justify-content:flex-end}.msg.l{justify-content:flex-start}
+.bubble{max-width:min(78%,380px);min-width:210px;padding:10px 12px;cursor:pointer;box-shadow:0 1px 2px rgba(20,20,60,.1)}
+.msg.r .bubble{background:#dfe4ff;border-radius:16px 16px 4px 16px}
+.msg.l .bubble{background:#fff;border-radius:16px 16px 16px 4px}
+.b-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:4px}
+.tag{font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:11px;padding:2px 8px;border-radius:999px}
+.tag.sale{background:#c7d2fe;color:var(--brand-d)}.tag.purchase{background:#fde68a;color:#92400e}
+.tag.in{background:#bbf7d0;color:#166534}.tag.out{background:#fecdd3;color:#9f1239}
+.no{color:var(--muted)}
+.b-items{color:#41456a;font-size:13px;margin-bottom:4px}
+.b-amt{font-size:20px;font-weight:800}
+.b-foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:12px;color:var(--muted)}
+.chip{padding:2px 9px;border-radius:999px;font-weight:600;font-size:12px}
+.chip.paid{background:#d1fae5;color:#065f46}.chip.part{background:#fef3c7;color:#92400e}.chip.due{background:#ffe4e6;color:#9f1239}
+.bubble.pay .b-amt{font-size:18px}
+.composer{background:var(--panel);border-top:1px solid var(--line);padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cbtn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 6px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px}
+.cbtn.sale{background:var(--brand);color:#fff;border-color:var(--brand)}
+.cbtn.purchase{background:#fff7e0;border-color:#fcd34d;color:#92400e}
+.cbtn.in{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}
+.cbtn.out{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
+.viewonly{background:#fff;padding:12px;text-align:center;color:var(--muted);border-top:1px solid var(--line);font-size:14px}
+.page{flex:1;overflow:auto;padding:22px;min-height:0}
+.page h2{margin:0 0 14px;font-size:22px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.card{background:#fff;border-radius:var(--r);padding:16px;box-shadow:0 1px 3px rgba(20,20,60,.06);margin-bottom:16px}
+.card h3{margin:0 0 10px;font-size:16px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 16px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:#f6f7fd}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}.btn.pri:hover{background:var(--brand-d)}
+.btn.danger{color:var(--pay);border-color:#fecdd3}
+.btn.sm{padding:5px 10px;font-size:13px}
+label.f{display:block;font-size:12px;color:var(--muted);font-weight:600}
+label.f>input,label.f>select,label.f>textarea{display:block;width:100%;margin-top:4px;border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff;font-weight:400;color:var(--ink);font-size:15px}
+label.f>input:focus,label.f>select:focus,label.f>textarea:focus,.sel:focus{outline:2px solid #c7d2fe;border-color:var(--brand)}
+.sel{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.mt{margin-top:12px}
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border-radius:var(--r);padding:14px;box-shadow:0 1px 3px rgba(20,20,60,.06)}
+.kpi small{color:var(--muted);display:block}.kpi b{font-size:22px}
+.kpi .s{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tabs .fchip{padding:6px 14px;font-size:14px}
+.tbl-wrap{overflow:auto;background:#fff;border-radius:var(--r);box-shadow:0 1px 3px rgba(20,20,60,.06)}
+.tbl{border-collapse:collapse;width:100%;font-size:14px}
+.tbl th,.tbl td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.tbl th{background:#f6f7fd;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tbl .n{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tfoot td{font-weight:700;background:#fafbff}
+.tbl .empty{text-align:center;color:var(--muted);padding:26px}
+.tbl tr.click{cursor:pointer}.tbl tr.click:hover{background:#f6f7fd}
+.bars{display:flex;align-items:flex-end;gap:14px;height:150px;padding-top:10px}
+.bars .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.bars .pair{display:flex;gap:4px;align-items:flex-end;height:calc(100% - 20px);width:100%;justify-content:center}
+.bars .b{width:42%;max-width:26px;border-radius:6px 6px 0 0;min-height:2px}
+.bars .s{background:var(--brand)}.bars .p{background:var(--accent)}
+.bars small{color:var(--muted);font-size:12px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.modal-bg{position:fixed;inset:0;background:rgba(20,20,50,.5);display:grid;place-items:center;z-index:50;padding:16px}
+.modal{background:#fff;border-radius:18px;width:min(520px,100%);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal.lg{width:min(760px,100%)}.modal.xl{width:min(860px,100%)}
+.m-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.m-head h3{margin:0;font-size:18px}
+.m-body{padding:18px;overflow:auto}
+.m-foot{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.line{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:#fafbff}
+.line .l1{display:flex;gap:8px;margin-bottom:8px}
+.line .l1 input{flex:1;border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff}
+.line .l2{display:grid;grid-template-columns:repeat(4,1fr) 1.2fr;gap:8px;align-items:end}
+.line .l2 label.f>input,.line .l2 label.f>select{padding:7px 8px;font-size:14px}
+.lamt{text-align:right;font-weight:700;padding-bottom:8px}
+.totals{margin-left:auto;width:min(340px,100%);font-size:14px}
+.totals div{display:flex;justify-content:space-between;padding:3px 0}
+.totals .tt{font-size:20px;font-weight:800;border-top:2px solid var(--ink);margin-top:6px;padding-top:8px}
+.note{font-size:12px;color:var(--muted);margin-top:4px}
+.pill{display:inline-block;background:#fef3c7;color:#92400e;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600}
+.row-sb{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:18px 10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:6px}
+.choice button:hover{background:var(--brand-l);border-color:#c7d2fe}
+.upick{display:flex;flex-direction:column;gap:8px}
+.upick button{display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;text-align:left}
+.upick button:hover{background:var(--brand-l)}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#1c1d33;color:#fff;padding:10px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:99;font-size:14px;max-width:90vw}
+#toast.on{opacity:1}
+.doc{font-size:13px;color:#111;background:#fff}
+.doc h1{margin:0;font-size:20px}
+.doc .dh{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:10px}
+.doc .dt{font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.doc table{width:100%;border-collapse:collapse;margin:10px 0}
+.doc th,.doc td{border:1px solid #bbb;padding:5px 7px;text-align:left}
+.doc th{background:#f0f0f0;font-size:12px}
+.doc .n{text-align:right}
+.doc .tot{margin-left:auto;width:280px}
+.doc .tot div{display:flex;justify-content:space-between;padding:2px 0}
+.doc .tot .gt{font-weight:800;font-size:15px;border-top:2px solid #111;margin-top:4px;padding-top:4px}
+.doc .words{margin:8px 0;font-style:italic}
+.doc .ft{margin-top:20px;color:#555;font-size:11px;display:flex;justify-content:space-between}
+#printRoot{display:none}
+@media print{
+  body{background:#fff}
+  #app,#modalRoot,#toast{display:none!important}
+  #printRoot{display:block}
+  @page{margin:12mm}
+}
+@media (max-width:820px){
+  #app,#app.v-items,#app.v-reports,#app.v-settings{display:flex;flex-direction:column}
+  .rail{order:3;flex-direction:row;width:100%;height:58px;padding:0 6px;justify-content:space-around;align-items:center;gap:0}
+  .rail .logo,.rail .sp{display:none}
+  .rbtn.on::before{display:none}
+  .listpane,.mainpane{flex:1;min-height:0;width:100%}
+  #app.v-chats.chat-open .listpane{display:none}
+  #app.v-chats:not(.chat-open) .mainpane{display:none}
+  .back{display:grid}
+  .fab{bottom:14px}
+  .modal-bg{padding:0;align-items:end}
+  .modal,.modal.lg,.modal.xl{width:100%;max-height:96dvh;border-radius:18px 18px 0 0}
+  .g2,.g3{grid-template-columns:1fr}
+  .g2.keep{grid-template-columns:1fr 1fr}
+  .line .l2{grid-template-columns:1fr 1fr 1fr}
+  .line .l2 .lamt{grid-column:1/-1;text-align:right}
+  .page{padding:14px}
+  .composer{padding:8px;gap:6px}
+  .cbtn{font-size:13px;padding:9px 2px}
+}
+</style>
+</head>
+<body>
+<div id="app"><nav class="rail" id="rail"></nav><section class="listpane" id="listpane"></section><main class="mainpane" id="mainpane"></main></div>
+<div id="modalRoot"></div>
+<div id="toast"></div>
+<div id="printRoot"></div>
+<datalist id="itemlist"></datalist>
+
+<script>
+/* =====================================================================
+   SimpleBooks v1 prototype  (rename APP_NAME freely)
+   - Pure front end. Data lives in the browser (localStorage) behind the
+     `Store` object below. To move to Firebase, re-implement ONLY the
+     Store methods (all(), put(), remove(), replaceAll(), clearAll()).
+   ===================================================================== */
+const APP_NAME='SimpleBooks';
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const STATES=[["01","Jammu & Kashmir"],["02","Himachal Pradesh"],["03","Punjab"],["04","Chandigarh"],["05","Uttarakhand"],["06","Haryana"],["07","Delhi"],["08","Rajasthan"],["09","Uttar Pradesh"],["10","Bihar"],["11","Sikkim"],["12","Arunachal Pradesh"],["13","Nagaland"],["14","Manipur"],["15","Mizoram"],["16","Tripura"],["17","Meghalaya"],["18","Assam"],["19","West Bengal"],["20","Jharkhand"],["21","Odisha"],["22","Chhattisgarh"],["23","Madhya Pradesh"],["24","Gujarat"],["26","Dadra & Nagar Haveli and Daman & Diu"],["27","Maharashtra"],["29","Karnataka"],["30","Goa"],["31","Lakshadweep"],["32","Kerala"],["33","Tamil Nadu"],["34","Puducherry"],["35","Andaman & Nicobar Islands"],["36","Telangana"],["37","Andhra Pradesh"],["38","Ladakh"]];
+const GST_RATES=[0,0.25,3,5,12,18,28];
+const COLS=['business','users','parties','items','invoices','payments'];
+
+/* ---------- Storage layer (swap for Firebase later) ---------- */
+const mem={};
+const LocalStore={
+  mode:'local',
+  ok:(()=>{try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return true}catch(e){return false}})(),
+  key(c){return 'sb1:'+c},
+  async all(c){try{if(this.ok)return JSON.parse(localStorage.getItem(this.key(c))||'[]')}catch(e){}return mem[this.key(c)]||[]},
+  async replaceAll(c,arr){const k=this.key(c);if(this.ok){try{localStorage.setItem(k,JSON.stringify(arr));return}catch(e){}}mem[k]=arr},
+  async put(c,doc){const a=await this.all(c);const i=a.findIndex(x=>x.id===doc.id);if(i>=0)a[i]=doc;else a.push(doc);await this.replaceAll(c,a);return doc},
+  async remove(c,id){const a=(await this.all(c)).filter(x=>x.id!==id);await this.replaceAll(c,a)},
+  async clearAll(){for(const c of COLS)await this.replaceAll(c,[]);try{localStorage.removeItem('sb1:me')}catch(e){}},
+  getMe(){try{return localStorage.getItem('sb1:me')}catch(e){return mem.me}},
+  setMe(v){try{localStorage.setItem('sb1:me',v)}catch(e){mem.me=v}}
+};
+
+/* ---------- Firebase storage (Firestore + email/password Auth) ----------
+   Path: businesses/{ownerUid}/{collection}/{docId}
+   Writes are NOT awaited for server ack, so billing works offline and syncs later. */
+const FB_VER='10.12.2';
+const fbCfg=()=>{try{return JSON.parse(localStorage.getItem('sb1:fbcfg')||'null')}catch(e){return null}};
+const clean=o=>JSON.parse(JSON.stringify(o));
+const FbStore={
+  mode:'fb',uid:null,email:'',
+  async init(cfg){
+    const base=`https://www.gstatic.com/firebasejs/${FB_VER}/`;
+    const [A,F,Au]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-firestore.js'),import(base+'firebase-auth.js')]);
+    this.F=F;this.Au=Au;
+    this.app=A.initializeApp(cfg);
+    this.auth=Au.getAuth(this.app);
+    try{this.db=F.initializeFirestore(this.app,{localCache:F.persistentLocalCache({tabManager:F.persistentMultipleTabManager()})})}
+    catch(e){this.db=F.getFirestore(this.app)}
+  },
+  currentUser(){return new Promise(res=>{const un=this.Au.onAuthStateChanged(this.auth,u=>{un();res(u)})})},
+  async signIn(email,pw){const r=await this.Au.signInWithEmailAndPassword(this.auth,email,pw);return r.user},
+  async signUp(email,pw){const r=await this.Au.createUserWithEmailAndPassword(this.auth,email,pw);return r.user},
+  async signOut(){await this.Au.signOut(this.auth)},
+  async reset(email){await this.Au.sendPasswordResetEmail(this.auth,email)},
+  bind(u){this.uid=u.uid;this.email=u.email||''},
+  colRef(c){return this.F.collection(this.db,'businesses',this.uid,c)},
+  docRef(c,id){return this.F.doc(this.db,'businesses',this.uid,c,id)},
+  async all(c){const s=await this.F.getDocs(this.colRef(c));return s.docs.map(d=>d.data())},
+  async put(c,doc){this.F.setDoc(this.docRef(c,doc.id),clean(doc)).catch(e=>toast('Cloud save issue: '+(e.code||e.message)));return doc},
+  async remove(c,id){this.F.deleteDoc(this.docRef(c,id)).catch(e=>toast('Cloud delete issue: '+(e.code||e.message)))},
+  async replaceAll(c,arr){
+    const old=await this.all(c),ops=[...old.map(d=>({del:d.id})),...arr.map(d=>({set:d}))];
+    for(let i=0;i<ops.length;i+=400){
+      const b=this.F.writeBatch(this.db);
+      ops.slice(i,i+400).forEach(o=>o.del?b.delete(this.docRef(c,o.del)):b.set(this.docRef(c,o.set.id),clean(o.set)));
+      await Promise.race([b.commit(),new Promise(r=>setTimeout(r,5000))]);
+    }
+  },
+  async clearAll(){for(const c of COLS)await this.replaceAll(c,[])},
+  getMe(){return this.uid},setMe(){}
+};
+let Store=LocalStore;
+
+/* ---------- State ---------- */
+const S={biz:null,business:[],users:[],parties:[],items:[],invoices:[],payments:[],me:null,view:'chats',partyId:null,filter:'all',q:'',iq:'',rp:{period:'month',from:'',to:'',tab:'summary'},lastReport:null};
+async function save(col,doc){const a=S[col];const i=a.findIndex(x=>x.id===doc.id);if(i>=0)a[i]=doc;else a.push(doc);await Store.put(col,doc)}
+async function del(col,id){S[col]=S[col].filter(x=>x.id!==id);await Store.remove(col,id)}
+
+/* ---------- Helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const r2=n=>Math.round((+n+Number.EPSILON)*100)/100;
+const fmtN=n=>(+n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const money=n=>'₹'+fmtN(Math.abs(n));
+const money0=n=>'₹'+Math.round(Math.abs(+n||0)).toLocaleString('en-IN');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const pad=n=>String(n).padStart(2,'0');
+const isoOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const todayISO=()=>isoOf(new Date());
+const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return isoOf(d)};
+const dFmt=iso=>{if(!iso)return'';const [y,m,d]=iso.split('-');return `${d} ${MONTHS[+m-1]} ${y}`};
+const stateName=c=>(STATES.find(s=>s[0]===c)||[,''])[1];
+const stateOpts=sel=>`<option value="">Select state</option>`+STATES.map(s=>`<option value="${s[0]}" ${s[0]===sel?'selected':''}>${s[0]} – ${esc(s[1])}</option>`).join('');
+const GSTIN_RE=/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+const COLORS=['#4f46e5','#0891b2','#c026d3','#ea580c','#0d9488','#9333ea','#db2777','#2563eb','#65a30d','#b45309'];
+const colorOf=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;return COLORS[h%COLORS.length]};
+const initials=s=>String(s).trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'?';
+const av=(name,size=42)=>`<div class="avatar" style="background:${colorOf(name)};width:${size}px;height:${size}px;font-size:${Math.round(size*.36)}px">${esc(initials(name))}</div>`;
+const ICONS={
+chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+box:'<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+chart:'<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
+sliders:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',back:'<path d="M15 18l-6-6 6-6"/>',
+search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+print:'<path d="M6 9V3h12v6M6 18H4v-7h16v7h-2"/><path d="M6 14h12v7H6z"/>',
+share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>',
+bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
+file:'<path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 13h6M9 17h6"/>',
+down:'<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
+x:'<path d="M6 6l12 12M18 6L6 18"/>',
+rupee:'<path d="M6 4h12M6 9h12M9 4c6 0 6 9 0 9H6l8 7"/>',
+down2:'<path d="M12 5v14M5 12l7 7 7-7"/>',up2:'<path d="M12 19V5M5 12l7-7 7 7"/>'
+};
+const ico=n=>`<svg class="i" viewBox="0 0 24 24">${ICONS[n]||''}</svg>`;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2400)}
+function inWords(n){
+  n=r2(n);const rupees=Math.floor(n),paise=Math.round((n-rupees)*100);
+  const a=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const b=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  const two=x=>x<20?a[x]:b[Math.floor(x/10)]+(x%10?' '+a[x%10]:'');
+  const three=x=>(x>=100?a[Math.floor(x/100)]+' Hundred'+(x%100?' ':''):'')+(x%100?two(x%100):'');
+  const conv=x=>{if(x===0)return'Zero';let s='';const cr=Math.floor(x/1e7);x%=1e7;const lk=Math.floor(x/1e5);x%=1e5;const th=Math.floor(x/1e3);x%=1e3;if(cr)s+=three(cr)+' Crore ';if(lk)s+=two(lk)+' Lakh ';if(th)s+=two(th)+' Thousand ';if(x)s+=three(x);return s.trim()};
+  let s='Rupees '+conv(rupees);if(paise)s+=' and '+two(paise)+' Paise';return s+' Only';
+}
+function download(name,text,mime){const b=new Blob([text],{type:mime||'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+
+/* ---------- Roles ---------- */
+const PERM={owner:['create','edit','delete','reports','settings','export'],staff:['create'],accountant:['reports','export']};
+const ROLE_LABEL={owner:'Owner',staff:'Staff',accountant:'Accountant'};
+const meUser=()=>S.users.find(u=>u.id===S.me);
+const role=()=>(meUser()||{}).role||'accountant';
+const can=a=>(PERM[role()]||[]).includes(a);
+const deny=()=>{toast(`${ROLE_LABEL[role()]} role can't do that`);return false};
+
+/* ---------- Modal system ---------- */
+const mroot=()=>$('#modalRoot');
+function openModal({title,body,actions=[],size='',persist=false,noClose=false,onMount}){
+  const bg=document.createElement('div');bg.className='modal-bg';bg.dataset.persist=persist||noClose?'1':'';
+  bg.innerHTML=`<div class="modal ${size}"><div class="m-head"><h3>${esc(title)}</h3>${noClose?'':`<button class="ib" data-x>${ico('x')}</button>`}</div><div class="m-body">${body}</div>${actions.length?'<div class="m-foot"></div>':''}</div>`;
+  mroot().appendChild(bg);
+  const foot=$('.m-foot',bg);
+  actions.forEach(a=>{const b=document.createElement('button');b.className='btn '+(a.cls||'');b.innerHTML=a.label;b.onclick=()=>a.fn(bg);foot.appendChild(b)});
+  if(!persist&&!noClose)bg.addEventListener('mousedown',e=>{if(e.target===bg)closeModal(bg)});
+  const x=$('[data-x]',bg);if(x)x.onclick=()=>closeModal(bg);
+  if(onMount)onMount(bg);
+  return bg;
+}
+function closeModal(bg){const el=bg||mroot().lastElementChild;if(el)el.remove()}
+function closeAllModals(){mroot().innerHTML=''}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const l=mroot().lastElementChild;if(l&&!l.dataset.persist)l.remove()}});
+
+/* ---------- Business logic ---------- */
+const party=id=>S.parties.find(p=>p.id===id);
+const item=id=>S.items.find(i=>i.id===id);
+const byDate=(a,b)=>(a.date<b.date?-1:a.date>b.date?1:(a.createdAt||0)-(b.createdAt||0));
+function partyBalance(pid){
+  const p=party(pid);if(!p)return 0;
+  let b=(p.opening||0)*(p.openingType==='pay'?-1:1);
+  S.invoices.forEach(i=>{if(i.partyId===pid)b+=i.type==='sale'?i.total:-i.total});
+  S.payments.forEach(x=>{if(x.partyId===pid)b+=x.direction==='in'?-x.amount:x.amount});
+  return r2(b);
+}
+function allocation(pid){
+  const p=party(pid),res={};if(!p)return res;
+  for(const type of['sale','purchase']){
+    const dir=type==='sale'?'in':'out';
+    let pool=S.payments.filter(x=>x.partyId===pid&&x.direction===dir).reduce((s,x)=>s+x.amount,0);
+    const op=p.opening||0,opSide=p.openingType==='pay'?'purchase':'sale';
+    if(opSide===type)pool-=Math.min(pool,op);
+    S.invoices.filter(i=>i.partyId===pid&&i.type===type).sort(byDate).forEach(i=>{const a=Math.min(pool,i.total);res[i.id]=r2(a);pool=r2(pool-a)});
+  }
+  return res;
+}
+function stockMap(excludeInv){
+  const m={};
+  S.invoices.forEach(inv=>{if(inv.id===excludeInv)return;inv.lines.forEach(l=>{if(!l.itemId)return;const o=m[l.itemId]||(m[l.itemId]={pu:0,so:0});if(inv.type==='purchase')o.pu+=l.qty;else o.so+=l.qty})});
+  return m;
+}
+function stockNow(it,m){const o=m[it.id]||{pu:0,so:0};return r2((it.openingStock||0)+o.pu-o.so)}
+function nextNo(type){
+  const pre=type==='sale'?(S.biz.prefix||'INV-'):'PB-';let max=0;
+  S.invoices.filter(i=>i.type===type).forEach(i=>{if(i.no&&i.no.startsWith(pre)){const n=parseInt(i.no.slice(pre.length),10);if(n>max)max=n}});
+  return pre+String(max+1).padStart(4,'0');
+}
+function calc(inv){
+  const p=party(inv.partyId),reg=S.biz.gstRegistered!==false;
+  const inter=!!(p&&p.state&&S.biz.state&&p.state!==S.biz.state);
+  let sub=0;inv.lines.forEach(l=>sub+=r2((+l.qty||0)*(+l.rate||0)));
+  const disc=Math.min(Math.max(+inv.discount||0,0),sub);
+  let taxable=0,cgst=0,sgst=0,igst=0;
+  const lines=inv.lines.map(l=>{
+    const amt=r2((+l.qty||0)*(+l.rate||0));
+    const tv=r2(amt-(sub?disc*amt/sub:0));
+    const g=reg?(+l.gst||0):0,tax=r2(tv*g/100);
+    const o={...l,qty:+l.qty||0,rate:+l.rate||0,gst:g,amount:amt,taxable:tv,cgst:0,sgst:0,igst:0};
+    if(inter)o.igst=tax;else{o.cgst=r2(tax/2);o.sgst=r2(tax-o.cgst)}
+    taxable+=tv;cgst+=o.cgst;sgst+=o.sgst;igst+=o.igst;return o;
+  });
+  taxable=r2(taxable);cgst=r2(cgst);sgst=r2(sgst);igst=r2(igst);
+  const raw=taxable+cgst+sgst+igst,total=Math.round(raw);
+  return{lines,sub:r2(sub),discount:r2(disc),taxable,cgst,sgst,igst,roundoff:r2(total-raw),total,interstate:inter,gstOn:reg};
+}
+function finalize(B){
+  const c=calc(B);
+  return{id:B.id,type:B.type,partyId:B.partyId,date:B.date,no:B.no,ref:B.ref||'',notes:B.notes||'',lines:c.lines,sub:c.sub,discount:c.discount,taxable:c.taxable,cgst:c.cgst,sgst:c.sgst,igst:c.igst,roundoff:c.roundoff,total:c.total,interstate:c.interstate,gstOn:c.gstOn,createdAt:B.createdAt||Date.now(),createdBy:B.createdBy||S.me};
+}
+function fyOf(iso){const y=+iso.slice(0,4),m=+iso.slice(5,7);const s=m>=4?y:y-1;return{from:`${s}-04-01`,to:`${s+1}-03-31`}}
+function rangeOf(rp){
+  const t=todayISO(),y=+t.slice(0,4),m=+t.slice(5,7);
+  if(rp.period==='month')return{from:`${y}-${pad(m)}-01`,to:isoOf(new Date(y,m,0))};
+  if(rp.period==='lastmonth'){const d=new Date(y,m-2,1);return{from:isoOf(d),to:isoOf(new Date(d.getFullYear(),d.getMonth()+1,0))}}
+  if(rp.period==='fy')return fyOf(t);
+  if(rp.period==='lastfy'){const f=fyOf(t);return{from:addDays(f.from,-365).slice(0,4)+'-04-01',to:f.from.slice(0,4)+'-03-31'}}
+  if(rp.period==='all')return{from:'0000-01-01',to:'9999-12-31'};
+  return{from:rp.from||'0000-01-01',to:rp.to||'9999-12-31'};
+}
+
+/* ---------- Rendering: shell ---------- */
+function render(){
+  const app=$('#app');
+  app.className='v-'+S.view+(S.view==='chats'&&S.partyId?' chat-open':'');
+  renderRail();renderList();renderMain();
+}
+function go(view,pid){S.view=view;if(pid!==undefined)S.partyId=pid;render()}
+function renderRail(){
+  const u=meUser();
+  const b=(v,i,t)=>`<button class="rbtn ${S.view===v?'on':''}" title="${t}" onclick="go('${v}')">${ico(i)}</button>`;
+  $('#rail').innerHTML=`<div class="logo">SB</div>${b('chats','chat','Parties')}${b('items','box','Items & stock')}${can('reports')?b('reports','chart','Reports'):''}${can('settings')?b('settings','sliders','Settings'):''}<div class="sp"></div><button class="rbtn" title="${esc(u?u.name:'')} – switch user" onclick="showUserPicker(true)">${u?av(u.name,34):''}</button>`;
+}
+
+/* ---------- Party list ---------- */
+function lastActivity(){
+  const m={};
+  const bump=(pid,ts,txt)=>{if(!m[pid]||ts>=m[pid].ts)m[pid]={ts,txt}};
+  S.invoices.forEach(i=>bump(i.partyId,i.date+String(i.createdAt||0).padStart(15,'0'),`${i.type==='sale'?'Sale':'Purchase'} ${i.no} · ${money0(i.total)}`));
+  S.payments.forEach(x=>bump(x.partyId,x.date+String(x.createdAt||0).padStart(15,'0'),`${x.direction==='in'?'Received':'Paid'} ${money0(x.amount)}`));
+  return m;
+}
+function renderList(){
+  const el=$('#listpane');
+  let rec=0,pay=0;S.parties.forEach(p=>{const b=partyBalance(p.id);if(b>0)rec+=b;else pay-=b});
+  el.innerHTML=`<div class="lp-head"><h2><span>Parties</span><span class="pill" style="font-weight:600">${esc(S.biz.name)}</span></h2>
+    <div class="sumstrip"><div class="sum g"><small>You'll get</small><b>${money0(rec)}</b></div><div class="sum r"><small>You'll give</small><b>${money0(pay)}</b></div></div>
+    <div class="search">${ico('search')}<input id="pq" placeholder="Search parties" value="${esc(S.q)}" oninput="S.q=this.value;renderListBody()"></div>
+    <div class="chips">${[['all','All'],['get','To receive'],['give','To pay']].map(([k,l])=>`<button class="fchip ${S.filter===k?'on':''}" onclick="S.filter='${k}';renderList()">${l}</button>`).join('')}</div></div>
+    <div class="plist" id="plist"></div>
+    ${can('create')?`<button class="fab" onclick="openNewMenu()">${ico('plus')} New</button>`:''}`;
+  renderListBody();
+}
+function renderListBody(){
+  const la=lastActivity(),q=S.q.trim().toLowerCase();
+  let rows=S.parties.map(p=>({p,b:partyBalance(p.id),la:la[p.id]}));
+  if(q)rows=rows.filter(r=>r.p.name.toLowerCase().includes(q)||(r.p.phone||'').includes(q));
+  if(S.filter==='get')rows=rows.filter(r=>r.b>0);if(S.filter==='give')rows=rows.filter(r=>r.b<0);
+  rows.sort((a,b)=>(b.la?b.la.ts:'')>(a.la?a.la.ts:'')?1:(b.la?b.la.ts:'')<(a.la?a.la.ts:'')?-1:a.p.name.localeCompare(b.p.name));
+  $('#plist').innerHTML=rows.length?rows.map(({p,b,la})=>`<div class="prow ${S.partyId===p.id?'on':''}" onclick="go('chats','${p.id}')">${av(p.name)}<div class="mid"><div class="nm">${esc(p.name)}</div><div class="ls">${esc(la?la.txt:'No transactions yet')}</div></div><div class="rt"><div class="am ${b>0?'g':b<0?'r':'z'}">${b===0?'Settled':money0(b)}</div><div class="tl">${b>0?'to receive':b<0?'to pay':''}</div></div></div>`).join(''):`<div class="empty-main"><p>No parties yet.</p>${can('create')?`<button class="btn pri" onclick="openParty()">Add your first party</button>`:''}</div>`;
+}
+function openNewMenu(){
+  const m=openModal({title:'Add new',body:`<div class="choice">
+    <button onclick="closeModal();openBill('sale')">${ico('file')}Sale bill</button>
+    <button onclick="closeModal();openBill('purchase')">${ico('down')}Purchase bill</button>
+    <button onclick="closeModal();openPayment('in')">${ico('down2')}Money received</button>
+    <button onclick="closeModal();openPayment('out')">${ico('up2')}Money paid</button>
+    <button onclick="closeModal();openParty()">${ico('plus')}New party</button>
+    <button onclick="closeModal();openItem()">${ico('box')}New item</button></div>`});
+}
+
+/* ---------- Chat view ---------- */
+function renderMain(){
+  const el=$('#mainpane');
+  if(S.view==='chats')return renderChat(el);
+  if(S.view==='items')return renderItems(el);
+  if(S.view==='reports')return renderReports(el);
+  if(S.view==='settings')return renderSettings(el);
+}
+function renderChat(el){
+  const p=party(S.partyId);
+  if(!p){
+    el.innerHTML=`<div class="empty-main">${ico('chat').replace('class="i"','class="i" style="width:56px;height:56px;color:#a5b4fc"')}<h3>Pick a party to see their bills</h3><p>Every customer and supplier is a conversation. Sales, purchases and payments appear as cards, with the running balance on top.</p>${can('create')?`<button class="btn pri" onclick="openNewMenu()">${ico('plus')} Create a bill</button>`:''}</div>`;return;
+  }
+  const bal=partyBalance(p.id),alloc=allocation(p.id);
+  const entries=[...S.invoices.filter(i=>i.partyId===p.id).map(i=>({k:'inv',d:i.date,t:i.createdAt||0,x:i})),...S.payments.filter(x=>x.partyId===p.id&&!x.auto).map(x=>({k:'pay',d:x.date,t:x.createdAt||0,x}))].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.t-b.t);
+  let html='',last='';
+  if(p.opening>0)html+=`<div class="dsep"><span>Opening balance: ${p.openingType==='pay'?'you owe':'they owe'} ${money(p.opening)}</span></div>`;
+  entries.forEach(e=>{
+    if(e.d!==last){html+=`<div class="dsep"><span>${dFmt(e.d)}</span></div>`;last=e.d}
+    if(e.k==='inv'){
+      const i=e.x,paid=alloc[i.id]||0,st=paid>=i.total-.005?'paid':paid>0?'part':'due';
+      const names=i.lines.map(l=>l.name),sm=names.slice(0,2).join(', ')+(names.length>2?` +${names.length-2} more`:'');
+      html+=`<div class="msg ${i.type==='sale'?'r':'l'}"><div class="bubble" onclick="viewInvoice('${i.id}')"><div class="b-top"><span class="tag ${i.type}">${i.type==='sale'?'Sale':'Purchase'}</span><span class="no">${esc(i.no)}</span></div><div class="b-items">${esc(sm)}</div><div class="b-amt">${money(i.total)}</div><div class="b-foot"><span class="chip ${st}">${st==='paid'?'Paid':st==='part'?'Part paid · '+money0(paid):'Due'}</span><span>${i.lines.length} item${i.lines.length>1?'s':''}</span></div></div></div>`;
+    }else{
+      const x=e.x;
+      html+=`<div class="msg ${x.direction==='in'?'r':'l'}"><div class="bubble pay" onclick="openPayment('${x.direction}','${p.id}','${x.id}')"><div class="b-top"><span class="tag ${x.direction}">${x.direction==='in'?'Received':'Paid'}</span><span class="no">${esc(x.mode||'')}</span></div><div class="b-amt">${money(x.amount)}</div>${x.note?`<div class="b-items">${esc(x.note)}</div>`:''}</div></div>`;
+    }
+  });
+  if(!entries.length)html+=`<div class="empty-main" style="margin-top:40px"><p>No bills yet for ${esc(p.name)}.</p></div>`;
+  const comp=can('create')?`<div class="composer"><button class="cbtn sale" onclick="openBill('sale','${p.id}')">Sale</button><button class="cbtn purchase" onclick="openBill('purchase','${p.id}')">Purchase</button><button class="cbtn in" onclick="openPayment('in','${p.id}')">Received</button><button class="cbtn out" onclick="openPayment('out','${p.id}')">Paid</button></div>`:`<div class="viewonly">View-only access (${ROLE_LABEL[role()]})</div>`;
+  el.innerHTML=`<div class="c-head"><button class="ib back" onclick="S.partyId=null;render()">${ico('back')}</button>${av(p.name,40)}<div class="mid"><div class="nm">${esc(p.name)}</div><div class="sub">${esc([p.phone,p.gstin,stateName(p.state)].filter(Boolean).join(' · ')||'No details added')}</div></div>
+    ${bal>0?`<button class="ib" title="Send payment reminder" onclick="remind('${p.id}')">${ico('bell')}</button>`:''}
+    <button class="ib" title="Statement" onclick="viewStatement('${p.id}')">${ico('print')}</button>
+    ${can('edit')?`<button class="ib" title="Edit party" onclick="openParty('${p.id}')">${ico('edit')}</button>`:''}</div>
+    <div class="balbar"><span style="color:var(--muted)">${bal>0?'They owe you':bal<0?'You owe them':'Balance'}</span><b style="color:${bal>0?'var(--get)':bal<0?'var(--pay)':'var(--muted)'}">${bal===0?'Settled':money(bal)}</b></div>
+    <div class="tline" id="tline">${html}</div>${comp}`;
+  const t=$('#tline');if(t)t.scrollTop=t.scrollHeight;
+}
+function waLink(phone,text){let d=String(phone||'').replace(/\D/g,'');if(d.length===10)d='91'+d;return `https://wa.me/${d}?text=${encodeURIComponent(text)}`}
+function remind(pid){
+  const p=party(pid),b=partyBalance(pid);
+  const text=`Hello ${p.name}, this is a gentle reminder from ${S.biz.name}: an amount of ${money(b)} is pending. Please arrange the payment at your earliest convenience. Thank you!`;
+  if(!p.phone){navigator.clipboard&&navigator.clipboard.writeText(text);toast('No phone saved – reminder text copied');return}
+  window.open(waLink(p.phone,text),'_blank');
+}
+
+/* ---------- Party form ---------- */
+function openParty(id,after){
+  if(!can(id?'edit':'create'))return deny();
+  const p=id?party(id):{name:'',type:'customer',phone:'',gstin:'',state:S.biz.state||'',address:'',opening:0,openingType:'get'};
+  openModal({title:id?'Edit party':'New party',persist:true,body:`
+    <label class="f">Name *<input id="p_name" value="${esc(p.name)}" placeholder="e.g. Ramesh Stores"></label>
+    <div class="g2 mt"><label class="f">Type<select id="p_type"><option value="customer" ${p.type==='customer'?'selected':''}>Customer</option><option value="supplier" ${p.type==='supplier'?'selected':''}>Supplier</option><option value="both" ${p.type==='both'?'selected':''}>Both</option></select></label>
+    <label class="f">Phone<input id="p_phone" type="tel" value="${esc(p.phone)}" placeholder="10-digit mobile"></label></div>
+    <div class="g2 mt"><label class="f">GSTIN (optional)<input id="p_gstin" value="${esc(p.gstin)}" maxlength="15" style="text-transform:uppercase" oninput="gstinHint(this)"></label>
+    <label class="f">State (place of supply)<select id="p_state">${stateOpts(p.state)}</select></label></div>
+    <label class="f mt">Address<textarea id="p_addr" rows="2">${esc(p.address)}</textarea></label>
+    <div class="g2 mt keep"><label class="f">Opening balance (₹)<input id="p_open" type="number" min="0" step="0.01" value="${p.opening||''}"></label>
+    <label class="f">Direction<select id="p_otype"><option value="get" ${p.openingType!=='pay'?'selected':''}>They owe me</option><option value="pay" ${p.openingType==='pay'?'selected':''}>I owe them</option></select></label></div>
+    <div class="note">State decides CGST+SGST (same state) or IGST (other state). Entering a GSTIN fills the state automatically.</div>`,
+    actions:[...(id&&can('delete')?[{label:'Delete',cls:'danger',fn:bg=>delParty(id,bg)}]:[]),{label:'Cancel',fn:bg=>closeModal(bg)},{label:'Save',cls:'pri',fn:async bg=>{
+      const name=$('#p_name',bg).value.trim();if(!name)return toast('Enter a name');
+      const g=$('#p_gstin',bg).value.trim().toUpperCase();if(g&&!GSTIN_RE.test(g)&&!confirm('This GSTIN looks invalid. Save anyway?'))return;
+      const doc={...p,id:id||uid(),name,type:$('#p_type',bg).value,phone:$('#p_phone',bg).value.trim(),gstin:g,state:$('#p_state',bg).value,address:$('#p_addr',bg).value.trim(),opening:r2(+$('#p_open',bg).value||0),openingType:$('#p_otype',bg).value,createdAt:p.createdAt||Date.now()};
+      await save('parties',doc);closeModal(bg);toast('Party saved');
+      if(after)after(doc);else{S.partyId=doc.id;S.view='chats';render()}
+    }}]});
+}
+function gstinHint(inp){
+  inp.value=inp.value.toUpperCase();
+  if(inp.value.length>=2){const s=STATES.find(x=>x[0]===inp.value.slice(0,2));const sel=$('#p_state');if(s&&sel)sel.value=s[0]}
+}
+async function delParty(id,bg){
+  if(S.invoices.some(i=>i.partyId===id)||S.payments.some(x=>x.partyId===id))return toast('This party has transactions, so it cannot be deleted');
+  if(!confirm('Delete this party?'))return;
+  await del('parties',id);closeModal(bg);S.partyId=null;render();toast('Party deleted');
+}
+
+/* ---------- Item form ---------- */
+function openItem(id,after){
+  if(!can(id?'edit':'create'))return deny();
+  const it=id?item(id):{name:'',type:'goods',hsn:'',unit:'pcs',saleRate:'',purchaseRate:'',gst:18,openingStock:0,lowStock:0};
+  openModal({title:id?'Edit item':'New item',persist:true,body:`
+    <label class="f">Item / service name *<input id="i_name" value="${esc(it.name)}"></label>
+    <div class="g3 mt"><label class="f">Type<select id="i_type" onchange="itemTypeChange()"><option value="goods" ${it.type==='goods'?'selected':''}>Goods</option><option value="service" ${it.type==='service'?'selected':''}>Service</option></select></label>
+    <label class="f"><span id="i_hsnl">${it.type==='service'?'SAC':'HSN'}</span> code<input id="i_hsn" value="${esc(it.hsn)}"></label>
+    <label class="f">Unit<input id="i_unit" value="${esc(it.unit)}" placeholder="pcs, kg, hr"></label></div>
+    <div class="g3 mt"><label class="f">Sale rate (₹)<input id="i_sr" type="number" min="0" step="0.01" value="${it.saleRate}"></label>
+    <label class="f">Purchase rate (₹)<input id="i_pr" type="number" min="0" step="0.01" value="${it.purchaseRate}"></label>
+    <label class="f">GST %<select id="i_gst">${GST_RATES.map(g=>`<option ${+it.gst===g?'selected':''}>${g}</option>`).join('')}</select></label></div>
+    <div class="g2 mt" id="i_stk"><label class="f">Opening stock<input id="i_os" type="number" step="any" value="${it.openingStock||''}"></label><label class="f">Low-stock alert at<input id="i_ls" type="number" step="any" value="${it.lowStock||''}"></label></div>`,
+    onMount:()=>itemTypeChange(),
+    actions:[...(id&&can('delete')?[{label:'Delete',cls:'danger',fn:async bg=>{if(S.invoices.some(i=>i.lines.some(l=>l.itemId===id)))return toast('Item used in bills – cannot delete');if(!confirm('Delete item?'))return;await del('items',id);closeModal(bg);render()}}]:[]),{label:'Cancel',fn:bg=>closeModal(bg)},{label:'Save',cls:'pri',fn:async bg=>{
+      const name=$('#i_name',bg).value.trim();if(!name)return toast('Enter item name');
+      const dup=S.items.find(x=>x.name.toLowerCase()===name.toLowerCase()&&x.id!==id);if(dup)return toast('An item with this name already exists');
+      const type=$('#i_type',bg).value;
+      const doc={...it,id:id||uid(),name,type,hsn:$('#i_hsn',bg).value.trim(),unit:$('#i_unit',bg).value.trim()||'pcs',saleRate:+$('#i_sr',bg).value||0,purchaseRate:+$('#i_pr',bg).value||0,gst:+$('#i_gst',bg).value,openingStock:type==='goods'?+$('#i_os',bg).value||0:0,lowStock:type==='goods'?+$('#i_ls',bg).value||0:0};
+      await save('items',doc);closeModal(bg);toast('Item saved');if(after)after(doc);else render();
+    }}]});
+}
+function itemTypeChange(){const t=$('#i_type');if(!t)return;$('#i_stk').style.display=t.value==='goods'?'':'none';$('#i_hsnl').textContent=t.value==='service'?'SAC':'HSN'}
+
+/* ---------- Items page ---------- */
+function renderItems(el){
+  const sm=stockMap(),q=S.iq.trim().toLowerCase();
+  const rows=S.items.filter(i=>!q||i.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+  el.innerHTML=`<div class="page"><h2>Items & stock</h2><div class="toolbar"><div class="search" style="flex:1;min-width:200px;background:#fff">${ico('search')}<input placeholder="Search items" value="${esc(S.iq)}" oninput="S.iq=this.value;renderItems($('#mainpane'));var e=$('#mainpane input');e.focus();e.setSelectionRange(e.value.length,e.value.length)"></div>${can('create')?`<button class="btn pri" onclick="openItem()">${ico('plus')} New item</button>`:''}</div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Item</th><th>Type</th><th>HSN/SAC</th><th class="n">Sale rate</th><th class="n">Purchase rate</th><th class="n">GST</th><th class="n">In stock</th></tr></thead><tbody>
+  ${rows.length?rows.map(i=>{const st=stockNow(i,sm),low=i.type==='goods'&&i.lowStock&&st<=i.lowStock;return `<tr class="${can('edit')?'click':''}" ${can('edit')?`onclick="openItem('${i.id}')"`:''}><td><b>${esc(i.name)}</b></td><td>${i.type==='goods'?'Goods':'Service'}</td><td>${esc(i.hsn)}</td><td class="n">${fmtN(i.saleRate)}</td><td class="n">${fmtN(i.purchaseRate)}</td><td class="n">${i.gst}%</td><td class="n">${i.type==='goods'?`${st} ${esc(i.unit)} ${low?'<span class="pill">Low</span>':''}`:'–'}</td></tr>`}).join(''):'<tr><td colspan="7" class="empty">No items yet. Items can also be created while billing.</td></tr>'}
+  </tbody></table></div></div>`;
+}
+
+/* ---------- Bill form ---------- */
+let B=null;
+const newLine=()=>({id:uid(),itemId:'',name:'',type:'goods',hsn:'',unit:'pcs',qty:1,rate:'',gst:18});
+function openBill(type,partyId,editId){
+  if(editId){if(!can('edit'))return deny()}else if(!can('create'))return deny();
+  const inv=editId?S.invoices.find(i=>i.id===editId):null;
+  if(inv){
+    const ap=S.payments.find(x=>x.invoiceId===inv.id&&x.auto);
+    B=JSON.parse(JSON.stringify(inv));B.paid=ap?ap.amount:0;B.mode=ap?ap.mode:'Cash';B.autoPayId=ap?ap.id:null;
+    B.lines=B.lines.map(l=>({id:l.id||uid(),itemId:l.itemId,name:l.name,type:l.type,hsn:l.hsn,unit:l.unit,qty:l.qty,rate:l.rate,gst:l.gst}));
+  }else B={id:uid(),type,partyId:partyId||'',date:todayISO(),no:nextNo(type),ref:'',lines:[newLine()],discount:'',paid:'',mode:'Cash',notes:''};
+  $('#itemlist').innerHTML=S.items.map(i=>`<option value="${esc(i.name)}"></option>`).join('');
+  const sale=B.type==='sale';
+  const bg=openModal({title:`${inv?'Edit':'New'} ${sale?'sale bill':'purchase bill'}`,size:'xl',persist:true,
+    body:`<div class="g3"><label class="f">${sale?'Customer':'Supplier'} *<select id="b_party" onchange="B.partyId=this.value;billPartyChange()"></select></label>
+    <label class="f">Date<input type="date" id="b_date" value="${B.date}" oninput="B.date=this.value"></label>
+    <label class="f">${sale?'Bill no.':'Our ref no.'}<input id="b_no" value="${esc(B.no)}" oninput="B.no=this.value"></label></div>
+    ${sale?'':`<label class="f mt">Supplier's bill no.<input id="b_ref" value="${esc(B.ref)}" oninput="B.ref=this.value"></label>`}
+    <div class="note" id="b_gstnote"></div>
+    <h4 style="margin:16px 0 8px">Items / services</h4><div id="b_lines"></div>
+    <button class="btn sm" onclick="addLine()">${ico('plus')} Add line</button>
+    <div class="g2 mt" style="align-items:start"><div>
+      <div class="g2 keep"><label class="f">Discount (₹)<input id="b_disc" type="number" min="0" step="0.01" value="${B.discount||''}" oninput="B.discount=this.value;recalc()"></label>
+      <label class="f">Paid now (₹)<input id="b_paid" type="number" min="0" step="0.01" value="${B.paid||''}" oninput="B.paid=this.value;recalc()"></label></div>
+      <div class="g2 keep mt"><label class="f">Payment mode<select id="b_mode" onchange="B.mode=this.value">${['Cash','UPI','Bank transfer','Cheque','Card'].map(m=>`<option ${B.mode===m?'selected':''}>${m}</option>`).join('')}</select></label><div style="display:flex;align-items:end"><button class="btn sm" onclick="payFull()">Mark fully paid</button></div></div>
+      <label class="f mt">Notes<textarea id="b_notes" rows="2" oninput="B.notes=this.value">${esc(B.notes)}</textarea></label></div>
+      <div class="totals" id="b_tot"></div></div>`,
+    actions:[{label:'Cancel',fn:b=>{if(confirm('Discard this bill?'))closeModal(b)}},{label:inv?'Update bill':'Save bill',cls:'pri',fn:saveBill}],
+    onMount:()=>{fillPartySelect();renderLines();recalc()}});
+}
+function fillPartySelect(){
+  const sel=$('#b_party');if(!sel)return;
+  const want=B.type==='sale'?['customer','both']:['supplier','both'];
+  const list=S.parties.filter(p=>want.includes(p.type)||p.id===B.partyId).sort((a,b)=>a.name.localeCompare(b.name));
+  sel.innerHTML=`<option value="">Select ${B.type==='sale'?'customer':'supplier'}</option>`+list.map(p=>`<option value="${p.id}" ${p.id===B.partyId?'selected':''}>${esc(p.name)}</option>`).join('')+`<option value="__new">➕ Add new party…</option>`;
+}
+function billPartyChange(){
+  if(B.partyId==='__new'){B.partyId='';fillPartySelect();openParty(null,p=>{B.partyId=p.id;fillPartySelect();recalc()});return}
+  recalc();
+}
+function renderLines(){
+  const reg=S.biz.gstRegistered!==false;
+  $('#b_lines').innerHTML=B.lines.map((l,i)=>`<div class="line" data-i="${i}"><div class="l1"><input class="ln" list="itemlist" placeholder="Item or service name" value="${esc(l.name)}"><button class="ib" title="Remove" onclick="rmLine(${i})">${ico('trash')}</button></div>
+    <div class="l2"><label class="f">Qty<input class="lq" type="number" min="0" step="any" value="${l.qty}"></label>
+    <label class="f">Rate (₹)<input class="lr" type="number" min="0" step="0.01" value="${l.rate}"></label>
+    <label class="f">GST %<select class="lg" ${reg?'':'disabled'}>${GST_RATES.map(g=>`<option ${+l.gst===g?'selected':''}>${g}</option>`).join('')}</select></label>
+    <label class="f">Type<select class="lt"><option value="goods" ${l.type==='goods'?'selected':''}>Goods</option><option value="service" ${l.type==='service'?'selected':''}>Service</option></select></label>
+    <div class="lamt" id="la_${i}">₹0.00</div></div></div>`).join('');
+  const box=$('#b_lines');
+  box.oninput=e=>{const row=e.target.closest('.line');if(!row)return;const l=B.lines[+row.dataset.i];
+    if(e.target.classList.contains('ln'))l.name=e.target.value;
+    if(e.target.classList.contains('lq'))l.qty=e.target.value;
+    if(e.target.classList.contains('lr'))l.rate=e.target.value;recalc()};
+  box.onchange=e=>{const row=e.target.closest('.line');if(!row)return;const i=+row.dataset.i,l=B.lines[i];
+    if(e.target.classList.contains('lg'))l.gst=+e.target.value;
+    if(e.target.classList.contains('lt'))l.type=e.target.value;
+    if(e.target.classList.contains('ln')){
+      const it=S.items.find(x=>x.name.toLowerCase()===e.target.value.trim().toLowerCase());
+      if(it){l.itemId=it.id;l.name=it.name;l.type=it.type;l.hsn=it.hsn;l.unit=it.unit;l.gst=it.gst;l.rate=B.type==='sale'?it.saleRate:it.purchaseRate;
+        row.querySelector('.lr').value=l.rate;row.querySelector('.lg').value=l.gst;row.querySelector('.lt').value=l.type}
+      else l.itemId='';
+    }recalc()};
+}
+function addLine(){B.lines.push(newLine());renderLines();recalc()}
+function rmLine(i){if(B.lines.length===1){B.lines[0]=newLine()}else B.lines.splice(i,1);renderLines();recalc()}
+function payFull(){const c=calc(B);B.paid=c.total;$('#b_paid').value=c.total;recalc()}
+function recalc(){
+  if(!B)return;const c=calc(B);
+  c.lines.forEach((l,i)=>{const e=$('#la_'+i);if(e)e.textContent=money(l.amount)});
+  const p=party(B.partyId),paid=+B.paid||0;
+  const gn=$('#b_gstnote');
+  if(gn)gn.innerHTML=!c.gstOn?'<span class="pill">Bill of Supply – business not GST registered, no tax added</span>':p?(c.interstate?`Place of supply: ${esc(stateName(p.state))} → <b>IGST</b> applies`:`Place of supply: ${esc(stateName(p.state||S.biz.state))} → <b>CGST + SGST</b> applies`):'Select a party to decide CGST+SGST / IGST.';
+  const t=$('#b_tot');if(!t)return;
+  t.innerHTML=`<div><span>Subtotal</span><span>${money(c.sub)}</span></div>${c.discount?`<div><span>Discount</span><span>− ${money(c.discount)}</span></div>`:''}${c.gstOn?`<div><span>Taxable value</span><span>${money(c.taxable)}</span></div>${c.interstate?`<div><span>IGST</span><span>${money(c.igst)}</span></div>`:`<div><span>CGST</span><span>${money(c.cgst)}</span></div><div><span>SGST</span><span>${money(c.sgst)}</span></div>`}`:''}${c.roundoff?`<div><span>Round off</span><span>${c.roundoff>0?'+':'−'} ${money(c.roundoff)}</span></div>`:''}<div class="tt"><span>Total</span><span>${money(c.total)}</span></div><div><span>Paid now</span><span>${money(paid)}</span></div><div style="font-weight:700;color:${c.total-paid>0.005?'var(--pay)':'var(--get)'}"><span>${paid>c.total+.005?'Excess paid':'Balance due'}</span><span>${money(Math.abs(c.total-paid))}</span></div>`;
+}
+async function saveBill(bg){
+  if(!B.partyId||B.partyId==='__new')return toast('Select a party');
+  const valid=B.lines.filter(l=>l.name.trim()&&(+l.qty)>0);
+  if(!valid.length)return toast('Add at least one item with a quantity');
+  if(valid.some(l=>l.rate===''||+l.rate<0))return toast('Enter a rate for every item');
+  if(!B.date)return toast('Choose a date');
+  if(!B.no.trim())return toast('Enter a bill number');
+  if(S.invoices.some(i=>i.type===B.type&&i.no===B.no.trim()&&i.id!==B.id)&&!confirm('This bill number already exists. Continue?'))return;
+  B.no=B.no.trim();B.lines=valid;
+  /* stock warning for sales */
+  if(B.type==='sale'){
+    const sm=stockMap(B.id),short=[];
+    B.lines.forEach(l=>{const it=S.items.find(x=>x.name.toLowerCase()===l.name.trim().toLowerCase());if(it&&it.type==='goods'){const avail=stockNow(it,sm);if(l.qty>avail)short.push(`${it.name} (have ${avail}, selling ${l.qty})`)}});
+    if(short.length&&!confirm('Stock will go below zero for:\n• '+short.join('\n• ')+'\n\nSave anyway?'))return;
+  }
+  /* link or create items */
+  for(const l of B.lines){
+    let it=S.items.find(x=>x.name.toLowerCase()===l.name.trim().toLowerCase());
+    if(!it){it={id:uid(),name:l.name.trim(),type:l.type,hsn:l.hsn||'',unit:l.unit||'pcs',saleRate:B.type==='sale'?+l.rate:0,purchaseRate:B.type==='purchase'?+l.rate:0,gst:+l.gst,openingStock:0,lowStock:0};await save('items',it)}
+    l.itemId=it.id;l.name=it.name;l.type=it.type;l.unit=it.unit;l.hsn=it.hsn;
+  }
+  const inv=finalize(B);await save('invoices',inv);
+  const paid=r2(+B.paid||0),dir=B.type==='sale'?'in':'out';
+  if(paid>0)await save('payments',{id:B.autoPayId||uid(),partyId:inv.partyId,direction:dir,amount:paid,date:inv.date,mode:B.mode||'Cash',note:'',invoiceId:inv.id,auto:true,createdAt:Date.now(),createdBy:S.me});
+  else if(B.autoPayId)await del('payments',B.autoPayId);
+  const wasNew=!S.invoices.some(i=>i.id===inv.id&&i.createdAt!==inv.createdAt);
+  closeModal(bg);B=null;S.partyId=inv.partyId;S.view='chats';render();toast('Bill saved');
+  if(inv.type==='sale')viewInvoice(inv.id);
+}
+
+/* ---------- Payment form ---------- */
+function openPayment(dir,partyId,editId){
+  if(editId){if(!can('edit'))return deny()}else if(!can('create'))return deny();
+  const x=editId?S.payments.find(p=>p.id===editId):{partyId:partyId||'',direction:dir,amount:'',date:todayISO(),mode:'Cash',note:''};
+  const d=x.direction;
+  const list=S.parties.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  openModal({title:`${editId?'Edit ':''}${d==='in'?'Money received':'Money paid'}`,persist:true,body:`
+    <label class="f">${d==='in'?'Received from':'Paid to'} *<select id="y_party" onchange="payPartyChange()"><option value="">Select party</option>${list.map(p=>`<option value="${p.id}" ${p.id===x.partyId?'selected':''}>${esc(p.name)}</option>`).join('')}</select></label>
+    <div class="note" id="y_bal"></div>
+    <div class="g2 mt"><label class="f">Amount (₹) *<input id="y_amt" type="number" min="0" step="0.01" value="${x.amount}"></label><label class="f">Date<input id="y_date" type="date" value="${x.date}"></label></div>
+    <div class="g2 mt"><label class="f">Mode<select id="y_mode">${['Cash','UPI','Bank transfer','Cheque','Card'].map(m=>`<option ${x.mode===m?'selected':''}>${m}</option>`).join('')}</select></label><label class="f">Note<input id="y_note" value="${esc(x.note)}" placeholder="optional"></label></div>
+    <button class="btn sm mt" onclick="payFullBal('${d}')">Settle full balance</button>`,
+    onMount:()=>payPartyChange(),
+    actions:[...(editId&&can('delete')?[{label:'Delete',cls:'danger',fn:async bg=>{if(!confirm('Delete this payment entry?'))return;await del('payments',editId);closeModal(bg);render()}}]:[]),{label:'Cancel',fn:bg=>closeModal(bg)},{label:'Save',cls:'pri',fn:async bg=>{
+      const pid=$('#y_party',bg).value,amt=r2(+$('#y_amt',bg).value);
+      if(!pid)return toast('Select a party');if(!(amt>0))return toast('Enter an amount');
+      await save('payments',{...x,id:editId||uid(),partyId:pid,direction:d,amount:amt,date:$('#y_date',bg).value||todayISO(),mode:$('#y_mode',bg).value,note:$('#y_note',bg).value.trim(),createdAt:x.createdAt||Date.now(),createdBy:x.createdBy||S.me});
+      closeModal(bg);S.partyId=pid;S.view='chats';render();toast('Saved');
+    }}]});
+}
+function payPartyChange(){
+  const pid=$('#y_party').value,e=$('#y_bal');if(!pid){e.textContent='';return}
+  const b=partyBalance(pid);e.textContent=b>0?`Currently they owe you ${money(b)}`:b<0?`Currently you owe them ${money(b)}`:'Currently settled';
+}
+function payFullBal(d){const pid=$('#y_party').value;if(!pid)return toast('Select a party first');const b=partyBalance(pid);$('#y_amt').value=Math.abs(b)||''}
+
+/* ---------- Invoice view / print ---------- */
+function invoiceDoc(inv){
+  const p=party(inv.partyId)||{name:'(deleted party)'},b=S.biz,sale=inv.type==='sale';
+  const title=!inv.gstOn?(sale?'Bill of Supply':'Purchase Bill'):(sale?'Tax Invoice':'Purchase Bill');
+  const alloc=allocation(inv.partyId),paid=alloc[inv.id]||0;
+  const showTax=inv.gstOn;
+  return `<div class="doc"><div class="dh"><div><h1>${esc(b.name)}</h1><div>${esc(b.address||'')}</div>${b.gstin?`<div>GSTIN: <b>${esc(b.gstin)}</b></div>`:''}${b.phone?`<div>Phone: ${esc(b.phone)}</div>`:''}</div><div style="text-align:right"><div class="dt">${title}</div><div>No: <b>${esc(inv.no)}</b></div>${inv.ref?`<div>Supplier bill: ${esc(inv.ref)}</div>`:''}<div>Date: ${dFmt(inv.date)}</div></div></div>
+  <div><b>${sale?'Bill to':'Supplier'}:</b> ${esc(p.name)}${p.address?`<br>${esc(p.address)}`:''}${p.gstin?`<br>GSTIN: ${esc(p.gstin)}`:''}${p.phone?`<br>Phone: ${esc(p.phone)}`:''}${showTax?`<br>Place of supply: ${esc(stateName(p.state||b.state))}`:''}</div>
+  <table><thead><tr><th>#</th><th>Description</th>${showTax?'<th>HSN/SAC</th>':''}<th class="n">Qty</th><th class="n">Rate</th>${showTax?'<th class="n">Taxable</th><th class="n">GST</th>':''}<th class="n">Amount</th></tr></thead><tbody>
+  ${inv.lines.map((l,i)=>{const tax=l.cgst+l.sgst+l.igst;return `<tr><td>${i+1}</td><td>${esc(l.name)}</td>${showTax?`<td>${esc(l.hsn||'')}</td>`:''}<td class="n">${l.qty} ${esc(l.unit||'')}</td><td class="n">${fmtN(l.rate)}</td>${showTax?`<td class="n">${fmtN(l.taxable)}</td><td class="n">${l.gst}%<br>${fmtN(tax)}</td>`:''}<td class="n">${fmtN(showTax?l.taxable+tax:l.taxable)}</td></tr>`}).join('')}</tbody></table>
+  <div class="tot"><div><span>Subtotal</span><span>${fmtN(inv.sub)}</span></div>${inv.discount?`<div><span>Discount</span><span>- ${fmtN(inv.discount)}</span></div>`:''}${showTax?(inv.interstate?`<div><span>IGST</span><span>${fmtN(inv.igst)}</span></div>`:`<div><span>CGST</span><span>${fmtN(inv.cgst)}</span></div><div><span>SGST</span><span>${fmtN(inv.sgst)}</span></div>`):''}${inv.roundoff?`<div><span>Round off</span><span>${fmtN(inv.roundoff)}</span></div>`:''}<div class="gt"><span>Total</span><span>₹ ${fmtN(inv.total)}</span></div><div><span>Paid</span><span>${fmtN(paid)}</span></div><div><span>Balance</span><span>${fmtN(Math.max(0,inv.total-paid))}</span></div></div>
+  <div class="words">${inWords(inv.total)}</div>${inv.notes?`<div>Notes: ${esc(inv.notes)}</div>`:''}
+  <div class="ft"><span>Computer-generated document</span><span>For ${esc(b.name)}</span></div></div>`;
+}
+function viewInvoice(id){
+  const inv=S.invoices.find(i=>i.id===id);if(!inv)return;
+  const p=party(inv.partyId)||{};
+  const acts=[{label:`${ico('print')} Print / PDF`,fn:()=>printHtml(invoiceDoc(inv))}];
+  if(inv.type==='sale')acts.push({label:`${ico('share')} WhatsApp`,fn:()=>{const text=`Hello ${p.name||''}, your bill ${inv.no} dated ${dFmt(inv.date)} from ${S.biz.name} is for ${money(inv.total)}. Thank you for your business!`;window.open(waLink(p.phone,text),'_blank')}});
+  if(can('edit'))acts.push({label:`${ico('edit')} Edit`,fn:bg=>{closeModal(bg);openBill(inv.type,inv.partyId,inv.id)}});
+  if(can('delete'))acts.push({label:`${ico('trash')} Delete`,cls:'danger',fn:async bg=>{if(!confirm('Delete this bill and its linked payment?'))return;for(const x of S.payments.filter(x=>x.invoiceId===inv.id))await del('payments',x.id);await del('invoices',inv.id);closeModal(bg);render();toast('Bill deleted')}});
+  openModal({title:`${inv.type==='sale'?'Sale':'Purchase'} ${inv.no}`,size:'lg',body:invoiceDoc(inv),actions:acts});
+}
+function printHtml(html){$('#printRoot').innerHTML=html;setTimeout(()=>window.print(),50)}
+function statementDoc(pid){
+  const p=party(pid),b=S.biz;let run=(p.opening||0)*(p.openingType==='pay'?-1:1);
+  const ent=[...S.invoices.filter(i=>i.partyId===pid).map(i=>({d:i.date,t:i.createdAt||0,desc:`${i.type==='sale'?'Sale':'Purchase'} ${i.no}`,dr:i.type==='sale'?i.total:0,cr:i.type==='purchase'?i.total:0})),...S.payments.filter(x=>x.partyId===pid).map(x=>({d:x.date,t:x.createdAt||0,desc:`${x.direction==='in'?'Received':'Paid'} (${x.mode||''})`,dr:x.direction==='out'?x.amount:0,cr:x.direction==='in'?x.amount:0}))].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.t-b.t);
+  const rows=ent.map(e=>{run=r2(run+e.dr-e.cr);return `<tr><td>${dFmt(e.d)}</td><td>${esc(e.desc)}</td><td class="n">${e.dr?fmtN(e.dr):''}</td><td class="n">${e.cr?fmtN(e.cr):''}</td><td class="n">${fmtN(Math.abs(run))} ${run>0?'Dr':run<0?'Cr':''}</td></tr>`}).join('');
+  return `<div class="doc"><div class="dh"><div><h1>${esc(b.name)}</h1></div><div style="text-align:right"><div class="dt">Account statement</div><div>${esc(p.name)}</div><div>As on ${dFmt(todayISO())}</div></div></div><table><thead><tr><th>Date</th><th>Particulars</th><th class="n">Debit (they owe)</th><th class="n">Credit (paid / purchased)</th><th class="n">Balance</th></tr></thead><tbody>${p.opening?`<tr><td></td><td>Opening balance</td><td class="n">${p.openingType==='pay'?'':fmtN(p.opening)}</td><td class="n">${p.openingType==='pay'?fmtN(p.opening):''}</td><td></td></tr>`:''}${rows}</tbody></table><div class="words"><b>Closing balance: ${money(run)} ${run>0?'(receivable from party)':run<0?'(payable to party)':''}</b></div></div>`;
+}
+function viewStatement(pid){openModal({title:'Statement',size:'lg',body:statementDoc(pid),actions:[{label:`${ico('print')} Print / PDF`,fn:()=>printHtml(statementDoc(pid))}]})}
+
+/* ---------- Reports ---------- */
+function invStatusMap(){const m={};S.parties.forEach(p=>Object.assign(m,allocation(p.id)));return m}
+function buildReport(tab,from,to){
+  const inR=i=>i.date>=from&&i.date<=to;
+  const am=invStatusMap();
+  if(tab==='sales'||tab==='purchases'){
+    const type=tab==='sales'?'sale':'purchase';
+    const L=S.invoices.filter(i=>i.type===type&&inR(i)).sort(byDate);
+    const cols=[{h:'Date'},{h:'Bill no.'},{h:type==='sale'?'Customer':'Supplier'},{h:'GSTIN'},{h:'Taxable',n:1},{h:'CGST',n:1},{h:'SGST',n:1},{h:'IGST',n:1},{h:'Total',n:1},{h:'Status'}];
+    const rows=L.map(i=>{const p=party(i.partyId)||{};const pd=am[i.id]||0;return[dFmt(i.date),i.no+(i.ref?` (${i.ref})`:''),p.name||'',p.gstin||'',i.taxable,i.cgst,i.sgst,i.igst,i.total,pd>=i.total-.005?'Paid':pd>0?'Part paid':'Due']});
+    const s=k=>r2(L.reduce((a,i)=>a+i[k],0));
+    return{title:tab==='sales'?'Sales register':'Purchase register',cols,rows,foot:['','','Total','',s('taxable'),s('cgst'),s('sgst'),s('igst'),s('total'),''],id:i=>0};
+  }
+  if(tab==='gst'){
+    const sum=type=>{const L=S.invoices.filter(i=>i.type===type&&inR(i));const s=k=>r2(L.reduce((a,i)=>a+i[k],0));return{t:s('taxable'),c:s('cgst'),s:s('sgst'),i:s('igst')}};
+    const o=sum('sale'),n=sum('purchase');
+    const cols=[{h:'Head'},{h:'Taxable value',n:1},{h:'CGST',n:1},{h:'SGST',n:1},{h:'IGST',n:1},{h:'Total tax',n:1}];
+    const row=(h,x)=>[h,x.t,x.c,x.s,x.i,r2(x.c+x.s+x.i)];
+    const net={t:r2(o.t-n.t),c:r2(o.c-n.c),s:r2(o.s-n.s),i:r2(o.i-n.i)};
+    const rows=[row('Output tax (sales)',o),row('Input tax (purchases)',n),row('Net (output − input)',net)];
+    /* rate-wise */
+    const rate={};S.invoices.filter(inR).forEach(i=>i.lines.forEach(l=>{const k=l.gst;const r=rate[k]||(rate[k]={st:0,sx:0,pt:0,px:0});const tax=l.cgst+l.sgst+l.igst;if(i.type==='sale'){r.st+=l.taxable;r.sx+=tax}else{r.pt+=l.taxable;r.px+=tax}}));
+    const rc=[{h:'GST rate'},{h:'Sales taxable',n:1},{h:'Output tax',n:1},{h:'Purchase taxable',n:1},{h:'Input tax',n:1}];
+    const rr=Object.keys(rate).sort((a,b)=>a-b).map(k=>[k+'%',r2(rate[k].st),r2(rate[k].sx),r2(rate[k].pt),r2(rate[k].px)]);
+    return{title:'GST summary',cols,rows,extra:{title:'Rate-wise summary',cols:rc,rows:rr},note:'Indicative working for the selected period. Final return filing needs ITC set-off rules, RCM, exempt/nil-rated splits and HSN summary.'};
+  }
+  if(tab==='stock'){
+    const sm=stockMap(),cols=[{h:'Item'},{h:'Unit'},{h:'Opening',n:1},{h:'Purchased',n:1},{h:'Sold',n:1},{h:'In stock',n:1},{h:'Value @ purchase rate',n:1}];
+    const rows=S.items.filter(i=>i.type==='goods').sort((a,b)=>a.name.localeCompare(b.name)).map(i=>{const o=sm[i.id]||{pu:0,so:0};const st=stockNow(i,sm);return[i.name,i.unit,i.openingStock||0,o.pu,o.so,st,r2(st*(i.purchaseRate||0))]});
+    return{title:'Stock summary (all time)',cols,rows,foot:['Total','','','','','',r2(rows.reduce((a,r)=>a+r[6],0))],plain:[2,3,4,5]};
+  }
+  if(tab==='outstanding'){
+    const cols=[{h:'Party'},{h:'Phone'},{h:'To receive',n:1},{h:'To pay',n:1}];
+    const rows=S.parties.map(p=>[p,partyBalance(p.id)]).filter(x=>x[1]!==0).sort((a,b)=>b[1]-a[1]).map(([p,b])=>[p.name,p.phone||'',b>0?b:'',b<0?-b:'']);
+    return{title:'Outstanding balances (as of today)',cols,rows,foot:['Total','',r2(rows.reduce((a,r)=>a+(+r[2]||0),0)),r2(rows.reduce((a,r)=>a+(+r[3]||0),0))]};
+  }
+}
+function tbl(cols,rows,foot,plain){
+  const cell=(c,v,i)=>c.n?`<td class="n">${v===''||v==null?'':(plain&&plain.includes(i)?v:fmtN(v))}</td>`:`<td>${esc(v)}</td>`;
+  return `<div class="tbl-wrap"><table class="tbl"><thead><tr>${cols.map(c=>`<th class="${c.n?'n':''}">${esc(c.h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(r=>`<tr>${r.map((v,i)=>cell(cols[i],v,i)).join('')}</tr>`).join(''):`<tr><td colspan="${cols.length}" class="empty">No records for this period</td></tr>`}</tbody>${foot?`<tfoot><tr>${foot.map((v,i)=>cell(cols[i],v,i)).join('')}</tr></tfoot>`:''}</table></div>`;
+}
+function renderReports(el){
+  if(!can('reports')){el.innerHTML='<div class="page"><h2>Reports</h2><p>Your role does not include reports.</p></div>';return}
+  const rp=S.rp,{from,to}=rangeOf(rp);
+  const tabs=[['summary','Summary'],['sales','Sales'],['purchases','Purchases'],['gst','GST'],['stock','Stock'],['outstanding','Outstanding']];
+  let body='';
+  if(rp.tab==='summary'){
+    const inR=i=>i.date>=from&&i.date<=to;
+    const sa=S.invoices.filter(i=>i.type==='sale'&&inR(i)),pu=S.invoices.filter(i=>i.type==='purchase'&&inR(i));
+    const sum=(L,k)=>r2(L.reduce((a,i)=>a+i[k],0));
+    let rec=0,pay=0;S.parties.forEach(p=>{const b=partyBalance(p.id);if(b>0)rec+=b;else pay-=b});
+    const tx=L=>r2(L.reduce((a,i)=>a+i.cgst+i.sgst+i.igst,0));
+    const net=r2(tx(sa)-tx(pu));
+    const lowItems=S.items.filter(i=>{const sm=stockMap();return i.type==='goods'&&i.lowStock&&stockNow(i,sm)<=i.lowStock});
+    /* last 6 months bars */
+    const now=new Date(),bars=[];let mx=1;
+    for(let k=5;k>=0;k--){const d=new Date(now.getFullYear(),now.getMonth()-k,1),f=isoOf(d),t=isoOf(new Date(d.getFullYear(),d.getMonth()+1,0));const s=sum(S.invoices.filter(i=>i.type==='sale'&&i.date>=f&&i.date<=t),'taxable'),p=sum(S.invoices.filter(i=>i.type==='purchase'&&i.date>=f&&i.date<=t),'taxable');mx=Math.max(mx,s,p);bars.push({l:MONTHS[d.getMonth()],s,p})}
+    body=`<div class="grid-cards">
+      <div class="kpi"><small>Sales (incl. GST)</small><b>${money0(sum(sa,'total'))}</b><div class="s">${sa.length} bills · taxable ${money0(sum(sa,'taxable'))}</div></div>
+      <div class="kpi"><small>Purchases (incl. GST)</small><b>${money0(sum(pu,'total'))}</b><div class="s">${pu.length} bills · taxable ${money0(sum(pu,'taxable'))}</div></div>
+      <div class="kpi"><small>Sales − purchases (taxable)</small><b style="color:${sum(sa,'taxable')-sum(pu,'taxable')>=0?'var(--get)':'var(--pay)'}">${money0(sum(sa,'taxable')-sum(pu,'taxable'))}</b><div class="s">simple snapshot, not true profit</div></div>
+      <div class="kpi"><small>To receive</small><b style="color:var(--get)">${money0(rec)}</b><div class="s">all customers, today</div></div>
+      <div class="kpi"><small>To pay</small><b style="color:var(--pay)">${money0(pay)}</b><div class="s">all suppliers, today</div></div>
+      <div class="kpi"><small>GST: output − input</small><b>${money0(net)}</b><div class="s">${net>=0?'payable (indicative)':'credit (indicative)'}</div></div></div>
+      <div class="card"><h3>Last 6 months (taxable value)</h3><div class="bars">${bars.map(b=>`<div class="col"><div class="pair"><div class="b s" style="height:${Math.max(2,b.s/mx*100)}%" title="Sales ${money0(b.s)}"></div><div class="b p" style="height:${Math.max(2,b.p/mx*100)}%" title="Purchases ${money0(b.p)}"></div></div><small>${b.l}</small></div>`).join('')}</div><div class="legend"><span><i style="background:var(--brand)"></i>Sales</span><span><i style="background:var(--accent)"></i>Purchases</span></div></div>
+      ${lowItems.length?`<div class="card"><h3>Low stock</h3>${lowItems.map(i=>`<span class="pill" style="margin:2px">${esc(i.name)}</span>`).join(' ')}</div>`:''}`;
+    S.lastReport=null;
+  }else{
+    const r=buildReport(rp.tab,from,to);S.lastReport=r;
+    body=`<div class="row-sb" style="margin-bottom:10px"><h3 style="margin:0">${esc(r.title)}</h3>${can('export')?`<button class="btn sm" onclick="exportReport()">${ico('down')} Export CSV</button>`:''}</div>${tbl(r.cols,r.rows,r.foot,r.plain)}${r.extra?`<h3 style="margin:18px 0 10px">${esc(r.extra.title)}</h3>${tbl(r.extra.cols,r.extra.rows)}`:''}${r.note?`<p class="note">${esc(r.note)}</p>`:''}`;
+  }
+  const noPeriod=['stock','outstanding'].includes(rp.tab);
+  el.innerHTML=`<div class="page"><h2>Reports</h2><div class="tabs">${tabs.map(([k,l])=>`<button class="fchip ${rp.tab===k?'on':''}" onclick="S.rp.tab='${k}';renderReports($('#mainpane'))">${l}</button>`).join('')}</div>
+  ${noPeriod?'':`<div class="toolbar"><select class="sel" onchange="S.rp.period=this.value;renderReports($('#mainpane'))">${[['month','This month'],['lastmonth','Last month'],['fy','This financial year'],['lastfy','Last financial year'],['all','All time'],['custom','Custom']].map(([k,l])=>`<option value="${k}" ${rp.period===k?'selected':''}>${l}</option>`).join('')}</select>${rp.period==='custom'?`<input class="sel" type="date" value="${rp.from}" onchange="S.rp.from=this.value;renderReports($('#mainpane'))"> to <input class="sel" type="date" value="${rp.to}" onchange="S.rp.to=this.value;renderReports($('#mainpane'))">`:`<span class="note">${rp.period==='all'?'':dFmt(from)+' – '+dFmt(to)}</span>`}</div>`}
+  ${body}</div>`;
+}
+function exportReport(){
+  if(!can('export'))return deny();
+  const r=S.lastReport;if(!r)return;
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const lines=[r.cols.map(c=>q(c.h)).join(',')];r.rows.forEach(x=>lines.push(x.map(q).join(',')));if(r.foot)lines.push(r.foot.map(q).join(','));
+  download(r.title.replace(/[^\w]+/g,'_').toLowerCase()+'.csv',lines.join('\n'),'text/csv');
+}
+
+/* ---------- Settings ---------- */
+function renderSettings(el){
+  if(!can('settings')){el.innerHTML='<div class="page"><h2>Settings</h2><p>Only the owner can change settings.</p></div>';return}
+  const b=S.biz;
+  el.innerHTML=`<div class="page"><h2>Settings</h2>
+  <div class="card"><h3>Business profile</h3><div class="g2"><label class="f">Business name<input id="s_name" value="${esc(b.name)}"></label><label class="f">Phone<input id="s_phone" value="${esc(b.phone||'')}"></label>
+  <label class="f">GSTIN<input id="s_gstin" value="${esc(b.gstin||'')}" maxlength="15" style="text-transform:uppercase"></label><label class="f">State<select id="s_state">${stateOpts(b.state)}</select></label>
+  <label class="f">Sale bill prefix<input id="s_prefix" value="${esc(b.prefix||'INV-')}"></label><label class="f">GST registered?<select id="s_reg"><option value="1" ${b.gstRegistered!==false?'selected':''}>Yes – issue Tax Invoices</option><option value="0" ${b.gstRegistered===false?'selected':''}>No – issue Bill of Supply</option></select></label></div>
+  <label class="f mt">Address (printed on bills)<textarea id="s_addr" rows="2">${esc(b.address||'')}</textarea></label><div class="mt"><button class="btn pri" onclick="saveBiz()">Save profile</button></div></div>
+  <div class="card"><h3>Users & roles</h3><p class="note" style="margin-top:0">Owner: everything · Staff: create bills, parties, items, payments · Accountant: view all + reports + export. (Real logins come with Firebase Auth.)</p>
+  ${S.users.map(u=>`<div class="row-sb" style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="display:flex;gap:10px;align-items:center">${av(u.name,34)}<div><b>${esc(u.name)}</b> ${u.id===S.me?'<span class="pill">you</span>':''}<div class="note" style="margin:0">${ROLE_LABEL[u.role]}</div></div></div>${u.id!==S.me?`<button class="btn sm danger" onclick="delUser('${u.id}')">Remove</button>`:''}</div>`).join('')}
+  <div class="g3 mt" style="align-items:end"><label class="f">Name<input id="u_name"></label><label class="f">Role<select id="u_role"><option value="staff">Staff</option><option value="accountant">Accountant</option><option value="owner">Owner</option></select></label><button class="btn pri" onclick="addUser()">Add user</button></div></div>
+  <div class="card"><h3>Cloud (Firebase)</h3>${Store.mode==='fb'?`<p style="margin-top:0">Connected as <b>${esc(Store.email)}</b>. Data syncs to your Firebase project and works offline.</p><div class="toolbar"><button class="btn" onclick="fbSignOut()">Sign out</button><button class="btn danger" onclick="fbDisconnect()">Disconnect Firebase</button></div>`:`<p class="note" style="margin-top:0">Data is stored in this browser only. Connect Firebase to keep it in the cloud and use it from any device. Existing data here can be copied across at first sign-in.</p><button class="btn pri" onclick="openFbConnect()">Connect Firebase</button>`}</div>
+  <div class="card"><h3>Data</h3><p class="note" style="margin-top:0">${Store.mode==='fb'?'Backups download a copy from the cloud data.':'Everything is stored in this browser only. Take a backup regularly.'}</p><div class="toolbar"><button class="btn" onclick="backup()">${ico('down')} Download backup</button><label class="btn" style="cursor:pointer">Restore backup<input type="file" accept=".json" hidden onchange="restore(this.files[0])"></label><button class="btn" onclick="loadDemo()">Add sample data</button><button class="btn danger" onclick="eraseAll()">Erase everything</button></div></div></div>`;
+}
+async function saveBiz(){
+  const g=$('#s_gstin').value.trim().toUpperCase();
+  if(g&&!GSTIN_RE.test(g)&&!confirm('GSTIN looks invalid. Save anyway?'))return;
+  Object.assign(S.biz,{name:$('#s_name').value.trim()||S.biz.name,phone:$('#s_phone').value.trim(),gstin:g,state:$('#s_state').value,prefix:$('#s_prefix').value.trim()||'INV-',gstRegistered:$('#s_reg').value==='1',address:$('#s_addr').value.trim()});
+  await Store.put('business',S.biz);toast('Saved');render();
+}
+async function addUser(){const n=$('#u_name').value.trim();if(!n)return toast('Enter a name');await save('users',{id:uid(),name:n,role:$('#u_role').value});renderSettings($('#mainpane'));toast('User added')}
+async function delUser(id){if(!confirm('Remove this user?'))return;await del('users',id);renderSettings($('#mainpane'))}
+function backup(){download(`simplebooks-backup-${todayISO()}.json`,JSON.stringify(Object.fromEntries(COLS.map(c=>[c,S[c]]))),'application/json')}
+function restore(f){
+  if(!f)return;const r=new FileReader();
+  r.onload=async()=>{try{const d=JSON.parse(r.result);if(!d.business||!d.users)throw 0;if(!confirm('This replaces all current data. Continue?'))return;for(const c of COLS)await Store.replaceAll(c,d[c]||[]);location.reload()}catch(e){toast('Not a valid backup file')}};
+  r.readAsText(f);
+}
+async function eraseAll(){if(!confirm('Erase ALL data in this browser? This cannot be undone.'))return;if(prompt('Type ERASE to confirm')!=='ERASE')return;await Store.clearAll();location.reload()}
+
+/* ---------- Setup, user picker, demo data ---------- */
+function showSetup(){
+  openModal({title:`Welcome to ${APP_NAME}`,noClose:true,body:`<p style="margin-top:0;color:var(--muted)">Set up your business in a minute. You can change everything later.</p>
+  <label class="f">Business name *<input id="w_name" placeholder="e.g. Sreeram Stores"></label>
+  <div class="g2 mt"><label class="f">Your name *<input id="w_user"></label><label class="f">Phone<input id="w_phone" type="tel"></label></div>
+  <div class="g2 mt"><label class="f">GSTIN (leave blank if not registered)<input id="w_gstin" maxlength="15" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase();const s=STATES.find(x=>x[0]===this.value.slice(0,2));if(s)$('#w_state').value=s[0]"></label><label class="f">State *<select id="w_state">${stateOpts('32')}</select></label></div>`,
+    actions:[{label:'Try with sample data',fn:bg=>finishSetup(bg,true)},{label:'Start fresh',cls:'pri',fn:bg=>finishSetup(bg,false)}]});
+}
+async function finishSetup(bg,demo){
+  const name=$('#w_name',bg).value.trim(),user=$('#w_user',bg).value.trim(),state=$('#w_state',bg).value,g=$('#w_gstin',bg).value.trim().toUpperCase();
+  if(!name||!user||!state)return toast('Fill business name, your name and state');
+  if(g&&!GSTIN_RE.test(g)&&!confirm('GSTIN looks invalid. Continue anyway?'))return;
+  S.biz={id:'main',name,phone:$('#w_phone',bg).value.trim(),gstin:g,state,address:'',prefix:'INV-',gstRegistered:!!g||demo};
+  S.business=[S.biz];await Store.put('business',S.biz);
+  const u={id:Store.mode==='fb'?Store.uid:uid(),name:user,role:'owner'};await save('users',u);S.me=u.id;Store.setMe(u.id);
+  closeModal(bg);if(demo)await seedDemo();render();
+}
+function showUserPicker(manual){
+  if(S.users.length<2&&manual)return toast(`Signed in as ${meUser().name} (${ROLE_LABEL[role()]}). Add more users in Settings.`);
+  openModal({title:'Who is using the app?',noClose:!manual,body:`<div class="upick">${S.users.map(u=>`<button onclick="pickUser('${u.id}')">${av(u.name,36)}<div><b>${esc(u.name)}</b><div class="note" style="margin:0">${ROLE_LABEL[u.role]}</div></div></button>`).join('')}</div>`});
+}
+function pickUser(id){S.me=id;Store.setMe(id);closeAllModals();if(!can('reports')&&S.view==='reports'||!can('settings')&&S.view==='settings')S.view='chats';render()}
+async function seedDemo(){
+  const t=todayISO(),d=n=>addDays(t,-n);
+  const P=(name,type,phone,state,gstin,open,ot)=>({id:uid(),name,type,phone,gstin:gstin||'',state,address:'',opening:open||0,openingType:ot||'get',createdAt:Date.now()});
+  const ps=[P('Ramesh Stores','customer','9847012345','32'),P('Anita Traders','customer','9946098765','32'),P('Coimbatore Wholesale Co','supplier','9894011122','33','33ABCDE1234F1Z5',0),P('Fresh Foods Distributors','supplier','9895055566','32'),P('Bangalore Tech Services','customer','9880012345','29','29AAACB1234C1ZP',2500)];
+  for(const p of ps)await save('parties',p);
+  const I=(name,type,hsn,unit,sr,pr,gst,os,ls)=>({id:uid(),name,type,hsn,unit,saleRate:sr,purchaseRate:pr,gst,openingStock:os,lowStock:ls});
+  const its=[I('Basmati Rice 5kg','goods','1006','bag',520,450,5,40,10),I('Sunflower Oil 1L','goods','1512','pcs',150,128,5,60,15),I('Notebook A4','goods','4820','pcs',45,32,12,100,20),I('LED Bulb 9W','goods','8539','pcs',120,85,12,12,15),I('Delivery Service','service','9965','trip',100,0,18,0,0),I('Repair Labour','service','9987','hr',500,0,18,0,0)];
+  for(const i of its)await save('items',i);
+  const L=(it,qty,rate)=>({id:uid(),itemId:it.id,name:it.name,type:it.type,hsn:it.hsn,unit:it.unit,qty,rate:rate??0,gst:it.gst});
+  const mk=async(type,pi,date,lines,paid,disc)=>{
+    const b={id:uid(),type,partyId:ps[pi].id,date,no:nextNo(type),ref:type==='purchase'?'SB-'+Math.floor(Math.random()*900+100):'',lines,discount:disc||0,notes:''};
+    const inv=finalize(b);await save('invoices',inv);
+    if(paid)await save('payments',{id:uid(),partyId:inv.partyId,direction:type==='sale'?'in':'out',amount:paid===true?inv.total:paid,date,mode:'UPI',note:'',invoiceId:inv.id,auto:true,createdAt:Date.now()});
+  };
+  await mk('purchase',2,d(40),[L(its[0],60,450),L(its[2],200,32),L(its[3],50,85)],true);
+  await mk('purchase',3,d(35),[L(its[1],100,128)],10000);
+  await mk('sale',0,d(30),[L(its[0],10,520),L(its[1],12,150)],true);
+  await mk('sale',1,d(21),[L(its[2],40,45),L(its[3],10,120),L(its[4],1,100)],1000);
+  await mk('sale',4,d(14),[L(its[5],6,500)],false);
+  await mk('sale',0,d(7),[L(its[0],15,520),L(its[1],20,150)],5000,50);
+  await mk('sale',1,d(3),[L(its[1],30,150)],false);
+  await save('payments',{id:uid(),partyId:ps[0].id,direction:'in',amount:3000,date:d(2),mode:'Cash',note:'Part payment',createdAt:Date.now()});
+  S.partyId=ps[0].id;
+}
+async function loadDemo(){if(!confirm('Add sample parties, items and bills to your data?'))return;await seedDemo();S.view='chats';render();toast('Sample data added')}
+
+/* ---------- Boot ---------- */
+function parseFbCfg(t){
+  const o={};for(const m of String(t).matchAll(/["']?(apiKey|authDomain|projectId|storageBucket|messagingSenderId|appId|measurementId)["']?\s*:\s*["']([^"']+)["']/g))o[m[1]]=m[2];
+  return o;
+}
+function openFbConnect(first){
+  openModal({title:'Connect Firebase',size:'lg',persist:true,noClose:!!first,body:`
+    <p style="margin-top:0;color:var(--muted)">Paste the <b>firebaseConfig</b> from Firebase console → Project settings → Your apps → Web app. Only the keys are needed; it can be the whole <code>const firebaseConfig = {…}</code> block.</p>
+    <textarea id="fb_cfg" rows="9" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:13px ui-monospace,monospace" placeholder='const firebaseConfig = {\n  apiKey: "...",\n  authDomain: "...firebaseapp.com",\n  projectId: "...",\n  appId: "..."\n};'></textarea>`,
+    actions:[...(first?[{label:'Use on this device only',fn:bg=>{try{localStorage.setItem('sb1:local','1')}catch(e){}closeModal(bg);startApp()}}]:[{label:'Cancel',fn:bg=>closeModal(bg)}]),{label:'Connect',cls:'pri',fn:()=>{
+      const c=parseFbCfg($('#fb_cfg').value);
+      if(!c.apiKey||!c.projectId||!c.appId)return toast('Config incomplete: apiKey, projectId and appId are required');
+      if(!c.authDomain)c.authDomain=c.projectId+'.firebaseapp.com';
+      try{localStorage.setItem('sb1:fbcfg',JSON.stringify(c))}catch(e){return toast('Browser storage is blocked')}
+      location.reload();
+    }}]});
+}
+function showLogin(msg){
+  closeAllModals();
+  openModal({title:`Sign in to ${APP_NAME}`,noClose:true,persist:true,body:`
+    <p style="margin-top:0;color:var(--muted)">Project: <b>${esc((fbCfg()||{}).projectId||'')}</b></p>
+    <label class="f">Email<input id="l_email" type="email" autocomplete="username"></label>
+    <label class="f mt">Password (min 6 characters)<input id="l_pw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin(false)"></label>
+    <div class="note" id="l_err" style="color:var(--pay);min-height:18px">${esc(msg||'')}</div>`,
+    actions:[{label:'Forgot password',fn:async()=>{const e=$('#l_email').value.trim();if(!e)return toast('Enter your email first');try{await FbStore.reset(e);toast('Reset email sent')}catch(x){toast(authMsg(x))}}},{label:'Change Firebase project',fn:()=>fbDisconnect()},{label:'Create account',fn:()=>doLogin(true)},{label:'Sign in',cls:'pri',fn:()=>doLogin(false)}]});
+}
+function authMsg(e){
+  const m={'auth/invalid-credential':'Wrong email or password','auth/wrong-password':'Wrong email or password','auth/user-not-found':'No account with this email – use Create account','auth/email-already-in-use':'Account exists – use Sign in','auth/weak-password':'Password must be at least 6 characters','auth/invalid-email':'Invalid email','auth/network-request-failed':'No internet connection','auth/operation-not-allowed':'Enable Email/Password sign-in in Firebase console → Authentication → Sign-in method','auth/too-many-requests':'Too many attempts – try later'};
+  return m[e.code]||(e.code||e.message||'Sign-in failed');
+}
+async function doLogin(create){
+  const email=$('#l_email').value.trim(),pw=$('#l_pw').value;
+  if(!email||!pw){$('#l_err').textContent='Enter email and password';return}
+  try{const u=create?await FbStore.signUp(email,pw):await FbStore.signIn(email,pw);FbStore.bind(u);Store=FbStore;closeAllModals();await startApp()}
+  catch(e){$('#l_err').textContent=authMsg(e)}
+}
+async function fbSignOut(){await FbStore.signOut();location.reload()}
+function fbDisconnect(){if(!confirm('Disconnect from Firebase and return to local mode on this device?\nCloud data is not deleted.'))return;try{localStorage.removeItem('sb1:fbcfg');localStorage.setItem('sb1:local','1')}catch(e){}location.reload()}
+async function maybeMigrate(){
+  /* first cloud sign-in: offer to copy this browser's data up */
+  const cloud=await FbStore.all('business');if(cloud.length)return;
+  const local=await LocalStore.all('business');if(!local.length)return;
+  if(!confirm('Copy the data saved in this browser to your cloud account?'))return;
+  for(const c of COLS)await FbStore.replaceAll(c,await LocalStore.all(c));
+  const us=await FbStore.all('users');   /* make the signed-in account the owner */
+  const mine=us.find(u=>u.role==='owner');
+  if(mine&&mine.id!==FbStore.uid){await FbStore.remove('users',mine.id);await FbStore.put('users',{...mine,id:FbStore.uid})}
+}
+async function boot(){
+  const cfg=fbCfg();
+  if(cfg){
+    try{
+      await FbStore.init(cfg);
+      const u=await FbStore.currentUser();
+      if(!u){showLogin();return}
+      FbStore.bind(u);Store=FbStore;
+    }catch(e){
+      console.error(e);
+      if(confirm('Could not reach Firebase ('+(e.code||e.message)+').\nOK = work offline on this device (local mode)\nCancel = retry later')){Store=LocalStore}else return;
+    }
+    if(Store===FbStore)await maybeMigrate();
+    return startApp();
+  }
+  let hasLocal=false;try{hasLocal=!!localStorage.getItem('sb1:business')||localStorage.getItem('sb1:local')==='1'}catch(e){}
+  if(hasLocal)return startApp();
+  openFbConnect(true);
+}
+async function startApp(){
+  for(const c of COLS)S[c]=await Store.all(c);
+  S.biz=S.business[0]||null;
+  if(!S.biz){showSetup();return}
+  const me=Store.getMe();
+  if(S.users.some(u=>u.id===me))S.me=me;
+  else if(S.users.length===1){S.me=S.users[0].id;Store.setMe(S.me)}
+  render();
+  if(!S.me)showUserPicker(false);
+}
+boot();
+</script>
+</body>
+</html>
